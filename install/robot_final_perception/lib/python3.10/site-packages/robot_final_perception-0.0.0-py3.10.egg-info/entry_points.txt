@@ -1,0 +1,3 @@
+[console_scripts]
+health_route_detector = robot_final_perception.health_route_detector:main
+
