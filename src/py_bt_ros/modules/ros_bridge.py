@@ -18,7 +18,9 @@ class ROSBridge:
             raise RuntimeError("ROSBridge is a singleton. Use ROSBridge.get().")
 
         # rclpy 초기화
-        rclpy.init(args=None)
+        # rclpy 초기화 (이미 되어있으면 패스)
+        if not rclpy.ok():
+            rclpy.init(args=None)
 
         # node 생성
         self.node = RclNode(node_name=node_name, namespace=namespace)

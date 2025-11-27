@@ -1,4 +1,3 @@
-# modules/bt_constructor.py
 import os
 from modules.utils import (
     parse_behavior_tree,
@@ -10,20 +9,6 @@ from modules.utils import (
 def build_behavior_tree(agent, behavior_tree_xml: str, env_pkg: str):
     """
     Build a Behavior Tree from an XML file for the given agent and environment package.
-
-    Parameters
-    ----------
-    agent : Agent (or compatible)
-        The agent instance; passed to action/condition node constructors.
-    behavior_tree_xml : str
-        Path to the XML file containing a <BehaviorTree> root.
-    env_pkg : str
-        Dotted package path for the scenario environment (e.g., "scenarios.simple").
-
-    Returns
-    -------
-    root_node : BT Node
-        The constructed behavior tree root node.
     """
     bt_module = optional_import(f"{env_pkg}.bt_nodes")
     mission_bt_module = optional_import(f"{env_pkg}.mission_bt_nodes")
@@ -47,7 +32,7 @@ def build_behavior_tree(agent, behavior_tree_xml: str, env_pkg: str):
 def _parse_xml_to_bt(xml_node, *, bt_module, mission_bt_module, agent, top_xml_path):
     node_type = xml_node.tag
 
-    # --- SubTree: inline from file (one <BehaviorTree> per file assumed) ---
+    # --- SubTree: inline from file ---
     if node_type == "SubTree":
         subtree_id = xml_node.attrib.get("ID")
         if not subtree_id:
@@ -75,19 +60,24 @@ def _parse_xml_to_bt(xml_node, *, bt_module, mission_bt_module, agent, top_xml_p
     BTNodeList = getattr(bt_module, "BTNodeList")
     attrib = {k: convert_value(v) for k, v in xml_node.attrib.items()}
 
+    # [핵심 수정] name 인자 충돌 방지 로직 추가
+    # XML에 'name' 속성이 있으면 그걸 쓰고(pop), 없으면 태그 이름(node_type) 사용
+    node_name = attrib.pop('name', node_type)
+
     if node_type in BTNodeList.CONTROL_NODES:
         control_class = getattr(bt_module, node_type)
-        return control_class(node_type, children=children, **attrib)
+        # name을 첫 번째 인자로 명시적으로 전달
+        return control_class(node_name, children=children, **attrib)
 
     elif node_type in BTNodeList.DECORATOR_NODES:
         decorator_class = getattr(bt_module, node_type)
         if len(children) != 1:
             raise ValueError(f"[ERROR] Decorator '{node_type}' must have exactly 1 child.")
-        return decorator_class(node_type, child=children[0], **attrib)
+        return decorator_class(node_name, child=children[0], **attrib)
 
     elif node_type in (BTNodeList.ACTION_NODES + BTNodeList.CONDITION_NODES):
         action_class = getattr(bt_module, node_type)
-        return action_class(node_type, agent, **attrib)
+        return action_class(node_name, agent, **attrib)
 
     elif node_type == "BehaviorTree":  # Root
         if not children:

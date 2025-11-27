@@ -1,0 +1,14 @@
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Fallback name="SafetySelector">
+      
+      <Sequence name="DriveSequence">
+        <CheckWallSafe name="IsSafe"/>
+        <NavigateToPoseNode name="GoToGoal" goal_x="1.0" goal_y="0.0"/>
+      </Sequence>
+
+      <WallAvoid name="EmergencyAvoid" duration="2.0"/>
+
+    </Fallback>
+  </BehaviorTree>
+</root>
