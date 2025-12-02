@@ -34,4 +34,9 @@ echo " 👉 환자 화면에서 '접수 시작' -> '작성 완료' -> '로봇 �
 echo "----------------------------------------------"
 python3 main.py
 
+# 4. 속도 조절 리모컨 실행
+echo "🎮 속도 조절 리모컨을 실행합니다."
+# 기존 py_bt_ros가 아니라, 새로 만든 'limo_controller' 패키지를 실행합니다.
+ros2 run limo_controller speed_ctrl
+
 cleanup
